@@ -1,9 +1,9 @@
 # major
 done the basic of what presented in minor
 # improvements(to be done)
--> implemented live map and order taking and all
-->setup of docker
--> gnn(tbd)
-->live metric stripe
-->paginated order loading
--> dataset prprocseding tab
+!-> implemented live map and order taking and all
+!->setup of docker
+!-> gnn(tbd)
+!->live metric stripe
+!->paginated order loading
+!-> dataset prprocseding tab
