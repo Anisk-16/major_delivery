@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Delivery Route Optimiser</title>
+
+    <!-- ── Leaflet (FREE OpenStreetMap tiles — NO API KEY NEEDED) ─────────── -->
+    <!-- <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+      crossorigin=""
+    />
+    <script
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV/XN2GqnU="
+      crossorigin=""
+    ></script> -->
+    <!-- ──────────────────────────────────────────────────────────────────── -->
+
+    <style>
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body { background: #030912; }
+      /* Prevent Leaflet default cursor override */
+      .leaflet-container { font-family: 'Courier New', monospace; }
+      /* Dark scrollbars */
+      ::-webkit-scrollbar { width: 6px; height: 6px; }
+      ::-webkit-scrollbar-track { background: #030912; }
+      ::-webkit-scrollbar-thumb { background: #0D2137; border-radius: 3px; }
+      ::-webkit-scrollbar-thumb:hover { background: #1A3A5C; }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
