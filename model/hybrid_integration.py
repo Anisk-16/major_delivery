@@ -26,7 +26,9 @@ from typing import Optional
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, BASE_DIR)
 
-from ortools_solver import solve_vrp, _dist_km, TRAFFIC_FACTOR as _TF
+from ortools_solver import (solve_vrp, _dist_km, TRAFFIC_FACTOR as _TF,
+                            fuel_consumption, co2_kg, co2_saved_vs_baseline,
+                            BASELINE_FUEL, CO2_PER_LITRE)
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
@@ -133,6 +135,11 @@ class HybridRouter:
 
         self.routes     : list[list[dict]] = [[] for _ in range(n_vehicles)]
         self.all_orders : list[dict]       = []
+        # Multi-objective weights (fuel + CO2 aware)
+        self.alpha = 0.50   # distance
+        self.beta  = 0.20   # time
+        self.gamma = 0.20   # fuel
+        self.delta = 0.10   # CO2
 
     # ── initial optimisation ───────────────────────────────────────────────────
     def optimize(self, orders: list[dict]) -> dict:
@@ -153,6 +160,10 @@ class HybridRouter:
             capacity     = self.capacity,
             time_limit   = self.or_time_limit,
             warm_start   = rl_perm,
+            alpha        = self.alpha,
+            beta         = self.beta,
+            gamma        = self.gamma,
+            delta        = self.delta,
         )
 
         # Build route dicts from index lists
@@ -216,6 +227,10 @@ class HybridRouter:
                 capacity  = self.capacity,
                 time_limit= self.or_time_limit,
                 warm_start= rl_perm,
+                alpha     = self.alpha,
+                beta      = self.beta,
+                gamma     = self.gamma,
+                delta     = self.delta,
             )
             self.routes = []
             for idx_list in result["routes"]:
@@ -281,36 +296,50 @@ class HybridRouter:
         for v_idx, route in enumerate(self.routes):
             stops = []
             for o in route:
+                d_km     = o.get("distance_km") or 0
+                t_lvl    = int(o.get("Road_traffic_density", 1))
+                f_L      = fuel_consumption(d_km, speed_kmh=25.0,
+                                            load_pct=0.5, road_type="urban",
+                                            traffic_level=t_lvl)
+                c_kg     = co2_kg(f_L)
                 stops.append({
                     "order_id"   : o.get("order_id"),
                     "pickup_lat" : o.get("pickup_lat"),
                     "pickup_lon" : o.get("pickup_lon"),
                     "drop_lat"   : o.get("drop_lat"),
                     "drop_lon"   : o.get("drop_lon"),
-                    "distance_km": o.get("distance_km"),
+                    "distance_km": d_km,
                     "eta_min"    : o.get("est_time_derived", o.get("est_time")),
                     "traffic"    : o.get("traffic_label", o.get("Road_traffic_density")),
                     "weather"    : o.get("weather_label", o.get("Weather_conditions")),
+                    "fuel_L"     : round(f_L, 4),
+                    "co2_kg"     : round(c_kg, 4),
                 })
             result.append({"vehicle_id": v_idx + 1, "stops": stops})
         return result
 
     def _event_result(self, strategy: str, t0: float) -> dict:
         elapsed = round(time.perf_counter() - t0, 3)
-        total_dist = sum(
-            _dist_km(r[i]["drop_lat"], r[i]["drop_lon"],
-                     r[i+1]["pickup_lat"], r[i+1]["pickup_lon"])
-            for r in self.routes for i in range(len(r)-1)
-        ) + sum(
-            _dist_km(o["pickup_lat"], o["pickup_lon"],
-                     o["drop_lat"],   o["drop_lon"])
-            for r in self.routes for o in r
-        )
+        total_dist = 0.0
+        total_fuel = 0.0
+        total_co2  = 0.0
+        for r in self.routes:
+            for o in r:
+                d    = o.get("distance_km") or 0
+                t_l  = int(o.get("Road_traffic_density", 1))
+                f    = fuel_consumption(d, speed_kmh=25.0, load_pct=0.5,
+                                        road_type="urban", traffic_level=t_l)
+                total_dist += d
+                total_fuel += f
+                total_co2  += co2_kg(f)
+        saved_co2 = co2_saved_vs_baseline(total_fuel, total_dist)
         return {
             "strategy"       : strategy,
             "solve_time_s"   : elapsed,
             "total_dist_km"  : round(total_dist, 3),
-            "total_fuel_L"   : round(total_dist * 0.12, 3),
+            "total_fuel_L"   : round(total_fuel, 3),
+            "total_co2_kg"   : round(total_co2, 3),
+            "co2_saved_kg"   : saved_co2,
             "routes_detail"  : self._routes_to_json(),
         }
 

@@ -2,20 +2,90 @@
 ortools_solver.py
 =================
 Capacitated VRP solver using Google OR-Tools.
+Includes carbon-aware and fuel-aware multi-objective routing.
 
-  solve_vrp(orders, n_vehicles, capacity, time_limit_sec, warm_start)
+  solve_vrp(orders, n_vehicles, capacity, time_limit_sec, warm_start,
+            alpha, beta, gamma, delta)
       → routes: list[list[int]]   (order indices per vehicle)
-      → metrics: dict
+      → metrics: dict  (includes fuel_L, co2_kg, co2_saved_kg)
 
-The solver accepts an optional RL warm-start (permutation of order indices)
-that is injected as an initial solution hint to speed up the search.
+Multi-objective arc cost:
+    cost = α × distance + β × time + γ × fuel + δ × CO2
+
+Carbon model:
+    fuel_L   = distance_km × base_rate × speed_factor × load_factor × road_factor
+    co2_kg   = fuel_L × CO2_PER_LITRE (2.31 kg/L for petrol)
+    savings  = baseline_co2 - actual_co2
 """
 
 import math
 import time
 from typing import Optional
+from delivery_env import TRAFFIC_FACTOR
 
 import numpy as np
+
+# ── Carbon & Fuel Constants ────────────────────────────────────────────────────
+BASE_FUEL_RATE  = 0.08        # L/km at ideal conditions (unloaded, 60 km/h)
+CO2_PER_LITRE   = 2.31        # kg CO2 per litre of petrol (IPCC standard)
+IDEAL_SPEED     = 60.0        # km/h for baseline fuel rate
+BASELINE_FUEL   = 0.12        # L/km simple baseline (for comparison/savings)
+
+# Road type fuel multipliers
+ROAD_FACTOR     = {"urban": 1.30, "highway": 0.90, "rural": 1.10}
+
+# Multi-objective weights (can be overridden per call)
+DEFAULT_ALPHA   = 0.50        # weight for distance
+DEFAULT_BETA    = 0.20        # weight for time
+DEFAULT_GAMMA   = 0.20        # weight for fuel
+DEFAULT_DELTA   = 0.10        # weight for CO2
+
+
+def fuel_consumption(distance_km: float,
+                     speed_kmh: float    = 25.0,
+                     load_pct: float     = 0.5,
+                     road_type: str      = "urban",
+                     traffic_level: int  = 1) -> float:
+    """
+    Physics-based fuel consumption model (litres).
+
+    Parameters
+    ----------
+    distance_km  : leg distance in km
+    speed_kmh    : average speed on this leg (km/h)
+    load_pct     : vehicle load as fraction of capacity 0→1
+    road_type    : 'urban' | 'highway' | 'rural'
+    traffic_level: 0=Low, 1=Medium, 2=High, 3=Very_High
+
+    Returns
+    -------
+    fuel_L : float
+    """
+    # Speed penalty — fuel increases when away from ideal 60 km/h
+    speed_factor = 1.0 + abs(speed_kmh - IDEAL_SPEED) * 0.005
+
+    # Load penalty — heavier vehicle burns more fuel
+    load_factor  = 1.0 + load_pct * 0.30
+
+    # Road type multiplier
+    rf = ROAD_FACTOR.get(road_type, 1.30)
+
+    # Traffic stop-start penalty
+    traffic_penalty = {0: 1.0, 1: 1.08, 2: 1.18, 3: 1.30}.get(traffic_level, 1.0)
+
+    return distance_km * BASE_FUEL_RATE * speed_factor * load_factor * rf * traffic_penalty
+
+
+def co2_kg(fuel_L: float) -> float:
+    """Convert fuel consumption (litres) to CO2 emissions (kg)."""
+    return fuel_L * CO2_PER_LITRE
+
+
+def co2_saved_vs_baseline(actual_fuel_L: float, distance_km: float) -> float:
+    """Carbon savings (kg CO2) vs simple 0.12 L/km flat baseline."""
+    baseline_fuel = distance_km * BASELINE_FUEL
+    saved_fuel    = baseline_fuel - actual_fuel_L
+    return round(saved_fuel * CO2_PER_LITRE, 4)
 
 # OR-Tools
 from ortools.constraint_solver import routing_enums_pb2
@@ -24,13 +94,6 @@ from ortools.constraint_solver import pywrapcp
 
 # ── distance helper (normalised [0,1] coords → km ≈ × 111) ────────────────────
 R_KM = 111.0
-
-TRAFFIC_FACTOR = {
-    0: 1.0,
-    1: 1.15,
-    2: 1.35,
-    3: 1.6
-}
 
 def _dist_km(lat1, lon1, lat2, lon2) -> float:
     dlat = (lat2 - lat1) * R_KM
@@ -85,19 +148,32 @@ def solve_vrp(
     depot_lat    : float,
     depot_lon    : float,
     n_vehicles   : int         = 3,
-    capacity     : int         = 10,      # orders per vehicle
-    time_limit   : int         = 10,      # seconds
-    warm_start   : Optional[list[int]] = None,   # RL-suggested permutation
+    capacity     : int         = 10,
+    time_limit   : int         = 10,
+    warm_start   : Optional[list[int]] = None,
+    # Multi-objective weights
+    alpha        : float       = DEFAULT_ALPHA,   # distance weight
+    beta         : float       = DEFAULT_BETA,    # time weight
+    gamma        : float       = DEFAULT_GAMMA,   # fuel weight
+    delta        : float       = DEFAULT_DELTA,   # CO2 weight
 ) -> dict:
     """
+    Carbon-aware, fuel-aware multi-objective VRP solver.
+
+    Arc cost = α×distance + β×time + γ×fuel + δ×CO2
+
     Returns
     -------
     {
-        "routes"      : [[order_idx, ...], ...],   # one list per vehicle
-        "total_dist_km": float,
+        "routes"        : [[order_idx, ...], ...],
+        "total_dist_km" : float,
         "total_time_min": float,
-        "solve_time_s" : float,
-        "status"       : "OPTIMAL" | "FEASIBLE" | "FAILED",
+        "total_fuel_L"  : float,
+        "total_co2_kg"  : float,
+        "co2_saved_kg"  : float,
+        "solve_time_s"  : float,
+        "status"        : "OPTIMAL" | "FEASIBLE" | "FAILED",
+        "weights"       : {alpha, beta, gamma, delta},
     }
     """
     if not orders:
@@ -113,14 +189,61 @@ def solve_vrp(
     manager = pywrapcp.RoutingIndexManager(n + 1, n_vehicles, 0)
     routing = pywrapcp.RoutingModel(manager)
 
-    # distance callback
+    # ── pre-compute per-arc fuel & CO2 for multi-objective cost ───────────────
+    lats_all  = [depot_lat] + [o["drop_lat"] for o in orders]
+    lons_all  = [depot_lon] + [o["drop_lon"] for o in orders]
+    traffic_all = [1] + [int(o.get("Road_traffic_density", 1)) for o in orders]
+
+    fuel_mat  = []   # L per arc
+    co2_mat   = []   # kg CO2 per arc
+    for i in range(n + 1):
+        fuel_row = []
+        co2_row  = []
+        for j in range(n + 1):
+            d_km    = _dist_km(lats_all[i], lons_all[i], lats_all[j], lons_all[j])
+            t_lvl   = traffic_all[j]
+            load_p  = 0.5   # assume half-loaded on average per leg
+            f_L     = fuel_consumption(d_km, speed_kmh=25.0,
+                                       load_pct=load_p, road_type="urban",
+                                       traffic_level=t_lvl)
+            fuel_row.append(f_L)
+            co2_row.append(co2_kg(f_L))
+        fuel_mat.append(fuel_row)
+        co2_mat.append(co2_row)
+
+    # ── multi-objective arc cost: α×dist + β×time + γ×fuel + δ×CO2 ────────────
+    # Scale all to same order of magnitude (all → "distance units" ~km)
+    # fuel: 1 L ≈ 8.33 km at baseline; CO2: 1 kg ≈ 3.6 km equivalent
+    FUEL_TO_KM = 1.0 / BASELINE_FUEL        # 1 L ÷ 0.12 L/km = 8.33 km
+    CO2_TO_KM  = 1.0 / (BASELINE_FUEL * CO2_PER_LITRE)  # 1 kg CO2 → km equiv
+
+    def multi_obj_cost_m(i, j):
+        d_km  = dist_mat[i][j] / 1000.0
+        t_min = time_mat[i][j]
+        f_L   = fuel_mat[i][j]
+        c_kg  = co2_mat[i][j]
+        # All components normalised to km-equivalent, then weighted
+        cost_km = (alpha * d_km
+                 + beta  * (t_min / 60.0) * 25.0    # time → km at 25 km/h
+                 + gamma * f_L * FUEL_TO_KM
+                 + delta * c_kg * CO2_TO_KM)
+        return int(cost_km * 1000)   # back to integer metres for OR-Tools
+
+    # distance callback (raw, for reporting)
     def dist_callback(from_idx, to_idx):
         i = manager.IndexToNode(from_idx)
         j = manager.IndexToNode(to_idx)
         return dist_mat[i][j]
 
+    # multi-objective cost callback
+    def cost_callback(from_idx, to_idx):
+        i = manager.IndexToNode(from_idx)
+        j = manager.IndexToNode(to_idx)
+        return multi_obj_cost_m(i, j)
+
+    cost_cb_idx = routing.RegisterTransitCallback(cost_callback)
+    routing.SetArcCostEvaluatorOfAllVehicles(cost_cb_idx)
     dist_cb_idx = routing.RegisterTransitCallback(dist_callback)
-    routing.SetArcCostEvaluatorOfAllVehicles(dist_cb_idx)
 
     # time callback + time dimension
     def time_callback(from_idx, to_idx):
@@ -195,27 +318,39 @@ def solve_vrp(
     routes         = []
     total_dist_m   = 0
     total_time_min = 0
+    total_fuel_L   = 0.0
+    total_co2      = 0.0
 
     for v in range(n_vehicles):
-        route   = []
-        idx     = routing.Start(v)
+        route = []
+        idx   = routing.Start(v)
         while not routing.IsEnd(idx):
             node = manager.IndexToNode(idx)
             if node != 0:
-                route.append(node - 1)    # back to 0-indexed order list
+                route.append(node - 1)
             next_idx = solution.Value(routing.NextVar(idx))
-            total_dist_m   += dist_mat[manager.IndexToNode(idx)][manager.IndexToNode(next_idx)]
-            total_time_min += time_mat[manager.IndexToNode(idx)][manager.IndexToNode(next_idx)]
+            ni = manager.IndexToNode(idx)
+            nj = manager.IndexToNode(next_idx)
+            total_dist_m   += dist_mat[ni][nj]
+            total_time_min += time_mat[ni][nj]
+            total_fuel_L   += fuel_mat[ni][nj]
+            total_co2      += co2_mat[ni][nj]
             idx = next_idx
         if route:
             routes.append(route)
 
-    status = ("OPTIMAL"  if routing.status() == 1 else "FEASIBLE")
+    total_dist_km = round(total_dist_m / 1000.0, 3)
+    status = ("OPTIMAL" if routing.status() == 1 else "FEASIBLE")
 
     return {
         "routes"         : routes,
-        "total_dist_km"  : round(total_dist_m / 1000.0, 3),
+        "total_dist_km"  : total_dist_km,
         "total_time_min" : total_time_min,
+        "total_fuel_L"   : round(total_fuel_L, 3),
+        "total_co2_kg"   : round(total_co2, 3),
+        "co2_saved_kg"   : co2_saved_vs_baseline(total_fuel_L, total_dist_km),
         "solve_time_s"   : round(solve_time, 2),
         "status"         : status,
+        "weights"        : {"alpha": alpha, "beta": beta,
+                            "gamma": gamma, "delta": delta},
     }

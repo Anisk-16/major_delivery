@@ -8,3 +8,5 @@ stable-baselines3==2.3.2
 gymnasium==0.29.1
 torch>=2.0.0
 scikit-learn==1.4.2
+apscheduler==3.10.4
+websockets==12.0

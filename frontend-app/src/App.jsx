@@ -1,10 +1,3 @@
-import L from "leaflet";
-import "leaflet/dist/leaflet.css";
-import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
-import markerIcon from "leaflet/dist/images/marker-icon.png";
-import markerShadow from "leaflet/dist/images/marker-shadow.png";
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({ iconRetinaUrl: markerIcon2x, iconUrl: markerIcon, shadowUrl: markerShadow });
 import { useState, useEffect, useRef, useCallback } from "react";
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -41,10 +34,10 @@ function LeafletMap({ routes, orders, depot, selectedVehicle }) {
   const layersRef    = useRef({ orders:null, routes:[], depot:null });
 
   useEffect(() => {
-    if (mapRef.current || !L || !containerRef.current) return;
+    if (mapRef.current || !window.L || !containerRef.current) return;
     const center = denorm(0.7769, 0.8984);
-    const map = L.map(containerRef.current, { center, zoom:12, zoomControl:true });
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    const map = window.L.map(containerRef.current, { center, zoom:12, zoomControl:true });
+    window.L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
       maxZoom: 19,
     }).addTo(map);
@@ -55,17 +48,17 @@ function LeafletMap({ routes, orders, depot, selectedVehicle }) {
   // Draw all order pickup/drop dots
   useEffect(() => {
     const map = mapRef.current;
-    if (!map || !L) return;
+    if (!map || !window.L) return;
     if (layersRef.current.orders) layersRef.current.orders.clearLayers();
-    else layersRef.current.orders = L.layerGroup().addTo(map);
+    else layersRef.current.orders = window.L.layerGroup().addTo(map);
 
     (orders||[]).forEach(o => {
       const p = denorm(o.pickup_lat, o.pickup_lon);
       const d = denorm(o.drop_lat,   o.drop_lon);
-      L.circleMarker(p, { radius:3, color:"#00E5FF", fillColor:"#00E5FF", fillOpacity:0.5, weight:1, opacity:0.45 })
+      window.L.circleMarker(p, { radius:3, color:"#00E5FF", fillColor:"#00E5FF", fillOpacity:0.5, weight:1, opacity:0.45 })
         .bindPopup(`<b style="font-family:monospace">Order #${o.order_id??""}</b><br>📦 Pickup<br>🚦 ${o.traffic_label??o.Road_traffic_density}<br>🌦 ${o.weather_label??o.Weather_conditions}`)
         .addTo(layersRef.current.orders);
-      L.circleMarker(d, { radius:3, color:"#fff", fillColor:"#fff", fillOpacity:0.3, weight:1, opacity:0.3 })
+      window.L.circleMarker(d, { radius:3, color:"#fff", fillColor:"#fff", fillOpacity:0.3, weight:1, opacity:0.3 })
         .bindPopup(`<b style="font-family:monospace">Order #${o.order_id??""}</b><br>🏠 Drop<br>📍 ${fmt(o.distance_km)} km`)
         .addTo(layersRef.current.orders);
     });
@@ -74,15 +67,15 @@ function LeafletMap({ routes, orders, depot, selectedVehicle }) {
   // Draw depot star
   useEffect(() => {
     const map = mapRef.current;
-    if (!map || !L || !depot) return;
+    if (!map || !window.L || !depot) return;
     if (layersRef.current.depot) layersRef.current.depot.remove();
     const pos = denorm(depot.lat, depot.lon);
-    const icon = L.divIcon({
+    const icon = window.L.divIcon({
       className:"",
       html:`<div style="width:18px;height:18px;border-radius:50%;background:#FFD700;border:3px solid #fff;box-shadow:0 0 14px #FFD700bb;"></div>`,
       iconAnchor:[9,9],
     });
-    layersRef.current.depot = L.marker(pos, { icon })
+    layersRef.current.depot = window.L.marker(pos, { icon })
       .bindPopup("<b style='font-family:monospace'>🏭 Virtual Depot</b><br>Centroid of all pickups")
       .addTo(map);
   }, [depot]);
@@ -90,7 +83,7 @@ function LeafletMap({ routes, orders, depot, selectedVehicle }) {
   // Draw vehicle routes
   useEffect(() => {
     const map = mapRef.current;
-    if (!map || !L) return;
+    if (!map || !window.L) return;
     layersRef.current.routes.forEach(l => l.remove());
     layersRef.current.routes = [];
 
@@ -100,42 +93,42 @@ function LeafletMap({ routes, orders, depot, selectedVehicle }) {
       const col = V_COLORS[vi % V_COLORS.length];
       const dim = selectedVehicle !== null && selectedVehicle !== vi;
       const op  = dim ? 0.12 : 0.88;
-      const grp = L.layerGroup().addTo(map);
+      const grp = window.L.layerGroup().addTo(map);
 
       if (depot) {
         const dp = denorm(depot.lat, depot.lon);
         const fp = denorm(stops[0].pickup_lat, stops[0].pickup_lon);
-        L.polyline([dp, fp], { color:col, weight:1.5, opacity:op*0.4, dashArray:"5 4" }).addTo(grp);
+        window.L.polyline([dp, fp], { color:col, weight:1.5, opacity:op*0.4, dashArray:"5 4" }).addTo(grp);
       }
 
       stops.forEach((s, si) => {
         const pPos = denorm(s.pickup_lat, s.pickup_lon);
         const dPos = denorm(s.drop_lat,   s.drop_lon);
-        L.polyline([pPos, dPos], { color:col, weight:2.5, opacity:op }).addTo(grp);
+        window.L.polyline([pPos, dPos], { color:col, weight:2.5, opacity:op }).addTo(grp);
         if (si < stops.length-1) {
           const nxP = denorm(stops[si+1].pickup_lat, stops[si+1].pickup_lon);
-          L.polyline([dPos, nxP], { color:col, weight:1.5, opacity:op*0.55, dashArray:"4 3" }).addTo(grp);
+          window.L.polyline([dPos, nxP], { color:col, weight:1.5, opacity:op*0.55, dashArray:"4 3" }).addTo(grp);
         }
-        const pIcon = L.divIcon({
+        const pIcon = window.L.divIcon({
           className:"",
           html:`<div style="width:11px;height:11px;border-radius:50%;background:${col};border:2px solid #fff;box-shadow:0 0 7px ${col}99;opacity:${op}"></div>`,
           iconAnchor:[5.5,5.5],
         });
-        L.marker(pPos, { icon:pIcon })
+        window.L.marker(pPos, { icon:pIcon })
           .bindPopup(`<div style="font-family:monospace;font-size:12px;min-width:180px"><b style="color:${col}">V${vi+1} Stop ${si+1}</b><br>Order #${s.order_id??""}<br>📍 ${fmt(s.distance_km)} km &nbsp;⏱ ${fmt(s.eta_min,0)} min<br>🚦 ${s.traffic||"—"} &nbsp;🌦 ${s.weather||"—"}</div>`)
           .addTo(grp);
-        const dIcon = L.divIcon({
+        const dIcon = window.L.divIcon({
           className:"",
           html:`<div style="width:7px;height:7px;border-radius:50%;background:#fff;border:2px solid ${col};opacity:${op*0.75}"></div>`,
           iconAnchor:[3.5,3.5],
         });
-        L.marker(dPos, { icon:dIcon }).addTo(grp);
+        window.L.marker(dPos, { icon:dIcon }).addTo(grp);
       });
 
       if (depot && stops.length) {
         const ld = denorm(stops[stops.length-1].drop_lat, stops[stops.length-1].drop_lon);
         const dp = denorm(depot.lat, depot.lon);
-        L.polyline([ld, dp], { color:col, weight:1.2, opacity:op*0.35, dashArray:"3 5" }).addTo(grp);
+        window.L.polyline([ld, dp], { color:col, weight:1.2, opacity:op*0.35, dashArray:"3 5" }).addTo(grp);
       }
       layersRef.current.routes.push(grp);
     });
@@ -327,11 +320,17 @@ export default function App() {
   const [apiOk,setApiOk]           = useState(null);
   const [leafletOk,setLeafletOk]   = useState(false);
   const [selVehicle,setSelVehicle] = useState(null);
+  const [wsStatus,setWsStatus]       = useState("disconnected");
+  const [schedRunning,setSchedRunning] = useState(false);
+  const [schedInterval,setSchedInterval] = useState(300);
+  const [reoptCount,setReoptCount]   = useState(0);
+  const [lastReopt,setLastReopt]     = useState(null);
+  const wsRef = useRef(null);
 
   const addLog = useCallback(msg=>setLog(l=>[`[${new Date().toLocaleTimeString()}] ${msg}`,...l.slice(0,29)]),[]);
 
   useEffect(()=>{
-    const chk=()=>{ if(L){setLeafletOk(true);return;} setTimeout(chk,200); }; chk();
+    const chk=()=>{ if(window.L){setLeafletOk(true);return;} setTimeout(chk,200); }; chk();
   },[]);
 
   useEffect(()=>{
@@ -345,6 +344,88 @@ export default function App() {
       setRewardData(d.steps.map((s,i)=>({step:s/1000,reward:d.rewards[i]})));
     }).catch(()=>{});
   },[]);
+
+  // ── WebSocket ──────────────────────────────────────────────────────────────
+  useEffect(()=>{
+    function connectWS(){
+      const ws = new WebSocket("ws://localhost:8000/ws");
+      wsRef.current = ws;
+      ws.onopen = ()=>{
+        setWsStatus("connected");
+        addLog("✅ WebSocket connected — live updates active");
+      };
+      ws.onmessage = (e)=>{
+        try{ handleWsMessage(JSON.parse(e.data)); }catch{}
+      };
+      ws.onclose = ()=>{
+        setWsStatus("disconnected");
+        addLog("⚠️ WebSocket disconnected — reconnecting in 5s...");
+        setTimeout(connectWS, 5000);
+      };
+      ws.onerror = ()=>{ setWsStatus("error"); ws.close(); };
+    }
+    connectWS();
+    return ()=>{ if(wsRef.current) wsRef.current.close(); };
+  },[]);
+
+  function handleWsMessage(msg){
+    switch(msg.type){
+      case "CONNECTED":
+        setSchedRunning(msg.scheduler_running||false);
+        setSchedInterval(msg.interval_seconds||300);
+        setReoptCount(msg.reopt_count||0);
+        break;
+      case "OPTIMISE_COMPLETE":
+      case "EVENT_RESULT":
+      case "AUTO_REOPT":
+        if(msg.routes_detail?.length) setRoutes(msg.routes_detail);
+        if(msg.metrics) setMetrics(m=>({...m,...msg.metrics,solve_time:msg.solve_time_s}));
+        if(msg.type==="AUTO_REOPT"){
+          setReoptCount(msg.reopt_count||0);
+          setLastReopt(msg.timestamp);
+          addLog(`🔄 Auto re-opt #${msg.reopt_count} → ${msg.strategy} · ${msg.solve_time_s}s`);
+        }
+        break;
+      case "SCHEDULER_STARTED":
+        setSchedRunning(true);
+        setSchedInterval(msg.interval_seconds);
+        addLog(`✅ Auto re-opt started — every ${msg.interval_seconds}s`);
+        break;
+      case "SCHEDULER_STOPPED":
+        setSchedRunning(false);
+        addLog("⏹ Auto re-opt stopped");
+        break;
+      case "SCHEDULER_INTERVAL_CHANGED":
+        setSchedInterval(msg.interval_seconds);
+        addLog(`⏱ Re-opt interval → ${msg.interval_seconds}s`);
+        break;
+      case "SCHEDULER_ERROR":
+        addLog(`❌ Scheduler error: ${msg.error}`);
+        break;
+      case "PING":
+        setSchedRunning(msg.scheduler_running);
+        setReoptCount(msg.reopt_count||0);
+        break;
+      default: break;
+    }
+  }
+
+  const startScheduler = async()=>{
+    try{ await apiFetch("/scheduler/start",{method:"POST"}); }
+    catch(e){ addLog(`❌ Scheduler start: ${e.message}`); }
+  };
+
+  const stopScheduler = async()=>{
+    try{ await apiFetch("/scheduler/stop",{method:"POST"}); }
+    catch(e){ addLog(`❌ Scheduler stop: ${e.message}`); }
+  };
+
+  const changeInterval = async(secs)=>{
+    try{
+      await apiFetch("/scheduler/interval",{method:"POST",body:JSON.stringify({seconds:secs})});
+      setSchedInterval(secs);
+    }catch(e){ addLog(`❌ Interval change: ${e.message}`); }
+  };
 
   const loadOrders = useCallback(async()=>{
     setLoading(true);
@@ -406,6 +487,21 @@ export default function App() {
               <span style={{ color:"#4A6077",fontSize:10 }}>{lbl} {ok===null?"…":ok?"READY":"OFFLINE"}</span>
             </div>
           ))}
+          {/* WS status */}
+          <div style={{ display:"flex",alignItems:"center",gap:5 }}>
+            <div style={{ width:7,height:7,borderRadius:"50%",
+              background:wsStatus==="connected"?"#7CFC00":wsStatus==="error"?"#FF3CAC":"#FFD700" }} />
+            <span style={{ color:"#4A6077",fontSize:10 }}>
+              WS {wsStatus==="connected"?"LIVE":wsStatus==="error"?"ERR":"…"}
+            </span>
+          </div>
+          {/* Scheduler dot */}
+          <div style={{ display:"flex",alignItems:"center",gap:5 }}>
+            <div style={{ width:7,height:7,borderRadius:"50%",background:schedRunning?"#00E5FF":"#2E4057" }} />
+            <span style={{ color:schedRunning?"#00E5FF":"#4A6077",fontSize:10 }}>
+              {schedRunning?`AUTO /${schedInterval}s`:"MANUAL"}
+            </span>
+          </div>
           {solveInfo && <div style={{ color:"#4A6077",fontSize:10 }}>{solveInfo.status} · {solveInfo.time}s</div>}
         </div>
       </div>
@@ -440,6 +536,8 @@ export default function App() {
           <Card label="ON-TIME"      value={metrics.on_time_pct}           unit="%"   color="#FF3CAC" icon="✅" />
           <Card label="VEHICLES"     value={metrics.vehicles_used}         unit=""    color="#B39DDB" icon="🚚" />
           <Card label="SOLVE TIME"   value={fmt(metrics.solve_time,2)}     unit="s"   color="#80CBC4" icon="⚡" sub="RL warm-start + OR-Tools" />
+          <Card label="CO₂ EMITTED"  value={fmt(metrics.total_co2_kg,2)}  unit="kg"  color="#FF6B35" icon="💨" sub="Physics fuel model" />
+          <Card label="CO₂ SAVED"    value={fmt(metrics.co2_saved_kg,2)}  unit="kg"  color="#7CFC00" icon="🌱" trend={`vs ${fmt(metrics.baseline_fuel_L,2)} L flat baseline`} />
         </div>
       )}
 
