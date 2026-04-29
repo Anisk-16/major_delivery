@@ -12,7 +12,7 @@ export function MetricsBand({ metrics }) {
         unit="km" 
         color="var(--brand-cyan)" 
         icon={MapPin} 
-        trend={`↓ ${(((43.3 - metrics.total_dist_km) / 43.3) * 100).toFixed(1)}% vs baseline`}
+        sub="Live route execution estimate"
       />
       <MetricsCard 
         label="TOTAL TIME" 

@@ -10,33 +10,43 @@ logger = logging.getLogger("uvicorn.error")
 scheduler = AsyncIOScheduler()
 
 def _compute_metrics_from_state(routes_detail, all_orders):
-    # Quick utility to fetch metrics
+    # The route payload already contains per-stop live metrics.
     try:
-        from ortools_solver import fuel_consumption, co2_kg, co2_saved_vs_baseline, BASELINE_FUEL
+        from ortools_solver import BASELINE_FUEL, CO2_PER_LITRE
+        from delivery_env import TIME_WINDOW, LATE_PENALTY
         total_dist = total_time = total_fuel = total_co2 = 0.0
         on_time = total_orders = 0
+        late_count = 0
+        total_late_min = 0.0
+        reward_score = 0.0
         n_vehicles = len([v for v in routes_detail if v.get("stops")])
         for vehicle in routes_detail:
-            stops   = vehicle.get("stops", [])
-            n_stops = len(stops)
-            total_orders += n_stops
-            for si, stop in enumerate(stops):
-                dist = stop.get("distance_km") or 0
-                eta  = stop.get("eta_min") or 0
+            stops = vehicle.get("stops", [])
+            total_orders += len(stops)
+            for stop in stops:
+                dist = stop.get("distance_km") or 0.0
+                eta = stop.get("eta_min") or 0.0
+                fuel_l = stop.get("fuel_L") or 0.0
+                co2_kg = stop.get("co2_kg") or 0.0
                 total_dist += dist
                 total_time += eta
-                on_time    += 1
-                traffic_lvl = int(stop.get("Road_traffic_density", 1))
-                load_pct    = (n_stops - si) / max(n_stops, 1)
-                f = fuel_consumption(dist, speed_kmh=25.0,
-                                     load_pct=load_pct, road_type="urban",
-                                     traffic_level=traffic_lvl)
-                total_fuel += f
-                total_co2  += co2_kg(f)
+                total_fuel += fuel_l
+                total_co2 += co2_kg
+                on_time += int(bool(stop.get("on_time")))
+                arrival = stop.get("arrival_time_min")
+                deadline = stop.get("deadline_min")
+                late_min = 0.0
+                if arrival is not None and deadline is not None:
+                    late_min = max(0.0, float(arrival) - float(deadline))
+                elif not stop.get("on_time"):
+                    late_min = TIME_WINDOW
+                late_count += int(late_min > 0)
+                total_late_min += late_min
+                reward_score -= dist + 0.5 * (late_min / TIME_WINDOW) * LATE_PENALTY
         on_time_pct   = round(100 * on_time / max(total_orders, 1), 1)
         baseline_fuel = round(total_dist * BASELINE_FUEL, 3)
         saved_fuel    = round(baseline_fuel - total_fuel, 3)
-        saved_co2     = round(saved_fuel * 2.31, 3)
+        saved_co2     = round(saved_fuel * CO2_PER_LITRE, 3)
         return {
             "total_dist_km"  : round(total_dist, 2),
             "total_time_min" : round(total_time, 1),
@@ -46,7 +56,11 @@ def _compute_metrics_from_state(routes_detail, all_orders):
             "fuel_saved_L"   : saved_fuel,
             "co2_saved_kg"   : saved_co2,
             "orders_served"  : total_orders,
+            "on_time_count"   : on_time,
             "on_time_pct"    : on_time_pct,
+            "late_count"     : late_count,
+            "total_late_min" : round(total_late_min, 2),
+            "reward_score"   : round(reward_score, 3),
             "vehicles_used"  : n_vehicles,
         }
     except Exception as e:

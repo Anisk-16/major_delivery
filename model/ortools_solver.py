@@ -29,7 +29,7 @@ import numpy as np
 BASE_FUEL_RATE  = 0.08        # L/km at ideal conditions (unloaded, 60 km/h)
 CO2_PER_LITRE   = 2.31        # kg CO2 per litre of petrol (IPCC standard)
 IDEAL_SPEED     = 60.0        # km/h for baseline fuel rate
-BASELINE_FUEL   = 0.12        # L/km simple baseline (for comparison/savings)
+BASELINE_FUEL   = 0.18        # L/km unoptimised urban delivery baseline (fully loaded, no route planning)
 
 # Road type fuel multipliers
 ROAD_FACTOR     = {"urban": 1.30, "highway": 0.90, "rural": 1.10}
@@ -127,7 +127,7 @@ def _build_time_matrix(orders: list[dict], depot_lat: float, depot_lon: float
     lats     = [depot_lat] + [o["drop_lat"] for o in orders]
     lons     = [depot_lon] + [o["drop_lon"] for o in orders]
     traffic  = [1] + [int(o.get("Road_traffic_density", 1)) for o in orders]
-    SPEED = 25.0  # km/h
+    SPEED = 40.0  # km/h — must match delivery_env.py
 
     n = len(lats)
     mat = []
@@ -203,7 +203,7 @@ def solve_vrp(
             d_km    = _dist_km(lats_all[i], lons_all[i], lats_all[j], lons_all[j])
             t_lvl   = traffic_all[j]
             load_p  = 0.5   # assume half-loaded on average per leg
-            f_L     = fuel_consumption(d_km, speed_kmh=25.0,
+            f_L     = fuel_consumption(d_km, speed_kmh=40.0,
                                        load_pct=load_p, road_type="urban",
                                        traffic_level=t_lvl)
             fuel_row.append(f_L)
@@ -224,7 +224,7 @@ def solve_vrp(
         c_kg  = co2_mat[i][j]
         # All components normalised to km-equivalent, then weighted
         cost_km = (alpha * d_km
-                 + beta  * (t_min / 60.0) * 25.0    # time → km at 25 km/h
+                 + beta  * (t_min / 60.0) * 40.0    # time → km at 40 km/h
                  + gamma * f_L * FUEL_TO_KM
                  + delta * c_kg * CO2_TO_KM)
         return int(cost_km * 1000)   # back to integer metres for OR-Tools

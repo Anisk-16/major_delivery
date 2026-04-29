@@ -46,8 +46,8 @@ def make_env(df, seed=0, max_orders=20):
     return _init
 
 
-def train(timesteps: int = 100_000, max_orders: int = 20, quick: bool = False):
-    print(f"[train_rl] Loading dataset …")
+def train(timesteps: int = 500_000, max_orders: int = 20, quick: bool = False, resume: bool = False):
+    print("[train_rl] Loading dataset ...")
     df = pd.read_csv(DATA_PATH)
     print(f"[train_rl] {len(df):,} clean orders loaded")
 
@@ -67,30 +67,47 @@ def train(timesteps: int = 100_000, max_orders: int = 20, quick: bool = False):
     eval_env = VecNormalize(eval_env, norm_obs=True, norm_reward=False,
                             training=False)
 
-    # ── PPO model ──────────────────────────────────────────────────────────────
-    model = PPO(
-        policy         = "MlpPolicy",
-        env            = train_env,
-        n_steps        = 512,
-        batch_size     = 64,
-        n_epochs       = 10,
-        gamma          = 0.99,
-        gae_lambda     = 0.95,
-        clip_range     = 0.2,
-        ent_coef       = 0.01,
-        learning_rate  = 3e-4,
-        verbose        = 1,
-        tensorboard_log= LOG_DIR,
-        policy_kwargs  = dict(net_arch=[256, 256]),
-    )
+    # linear learning-rate decay: starts at 3e-4, ends near 5e-5
+    lr_schedule = lambda progress: 3e-4 * (progress * 0.83 + 0.17)  # noqa: E731
+
+    # ── PPO model — resume or fresh ────────────────────────────────────────────
+    existing_model = os.path.join(MODEL_DIR, "best_model.zip")
+    if resume and os.path.exists(existing_model):
+        print(f"[train_rl] Resuming from {existing_model} ...")
+        model = PPO.load(
+            existing_model,
+            env            = train_env,
+            learning_rate  = lr_schedule,
+            ent_coef       = 0.02,
+            verbose        = 1,
+            tensorboard_log= None,
+        )
+    else:
+        if resume:
+            print("[train_rl] No existing model found — starting fresh.")
+        model = PPO(
+            policy         = "MlpPolicy",
+            env            = train_env,
+            n_steps        = 1024,
+            batch_size     = 128,
+            n_epochs       = 10,
+            gamma          = 0.99,
+            gae_lambda     = 0.95,
+            clip_range     = 0.2,
+            ent_coef       = 0.02,
+            learning_rate  = lr_schedule,
+            verbose        = 1,
+            tensorboard_log= None,
+            policy_kwargs  = dict(net_arch=[256, 256, 128]),
+        )
 
     # ── callbacks ──────────────────────────────────────────────────────────────
     eval_cb = EvalCallback(
         eval_env,
         best_model_save_path = MODEL_DIR,
         log_path             = LOG_DIR,
-        eval_freq            = max(1000, timesteps // 20),
-        n_eval_episodes      = 5,
+        eval_freq            = max(2000, timesteps // 25),  # more frequent checkpoints
+        n_eval_episodes      = 10,                          # more reliable (was 5)
         deterministic        = True,
         verbose              = 1,
     )
@@ -101,7 +118,7 @@ def train(timesteps: int = 100_000, max_orders: int = 20, quick: bool = False):
     )
 
     # ── train ──────────────────────────────────────────────────────────────────
-    print(f"[train_rl] Starting PPO training for {timesteps:,} steps …")
+    print(f"[train_rl] Starting PPO training for {timesteps:,} steps ...")
     model.learn(total_timesteps=timesteps, callback=[eval_cb, ckpt_cb])
 
     # ── save ───────────────────────────────────────────────────────────────────
@@ -109,23 +126,24 @@ def train(timesteps: int = 100_000, max_orders: int = 20, quick: bool = False):
     vecnorm_path = os.path.join(MODEL_DIR, "vecnorm.pkl")
     model.save(model_path)
     train_env.save(vecnorm_path)
-    print(f"[train_rl] ✅ Model saved → {model_path}.zip")
-    print(f"[train_rl] ✅ VecNorm  saved → {vecnorm_path}")
+    print(f"[train_rl] Model saved -> {model_path}.zip")
+    print(f"[train_rl] VecNorm  saved -> {vecnorm_path}")
 
     return model, train_env
 
 
 def evaluate(model, env, n_episodes=5):
-    print("\n[train_rl] Evaluating …")
+    print("\n[train_rl] Evaluating ...")
     rewards, infos_all = [], []
     for ep in range(n_episodes):
         obs = env.reset()
         done, ep_reward = False, 0.0
         while not done:
             action, _ = model.predict(obs, deterministic=True)
-            obs, reward, done, info = env.step(action)
-            ep_reward += reward[0]
-            if done[0]:
+            obs, reward, done_arr, info = env.step(action)
+            ep_reward += float(reward[0])
+            done = bool(done_arr[0])
+            if done:
                 infos_all.append(info[0])
         rewards.append(ep_reward)
 
@@ -140,8 +158,11 @@ if __name__ == "__main__":
     parser.add_argument("--timesteps",  type=int,  default=100_000)
     parser.add_argument("--max_orders", type=int,  default=20)
     parser.add_argument("--quick",      action="store_true")
+    parser.add_argument("--resume",     action="store_true",
+                        help="Continue training from existing best_model.zip")
     args = parser.parse_args()
 
-    ts = 5_000 if args.quick else args.timesteps
-    model, env = train(timesteps=ts, max_orders=args.max_orders, quick=args.quick)
+    ts = 10_000 if args.quick else args.timesteps
+    model, env = train(timesteps=ts, max_orders=args.max_orders,
+                       quick=args.quick, resume=args.resume)
     evaluate(model, env)

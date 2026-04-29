@@ -3,7 +3,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 const TC = { Low:"var(--brand-lime)", Medium:"var(--brand-gold)", High:"var(--brand-coral)", Very_High:"#FF3CAC" };
 const WC = ["#B0BEC5","#90A4AE","#64B5F6","#1E88E5","#78909C","#FF3CAC","#E0F7FA"];
 
-export function AnalyticsTab({ rewardData, trafficData, weatherData }) {
+export function AnalyticsTab({ rewardData, trafficData, weatherData, metrics, solveInfo }) {
   const chartStyle = {
     background: "rgba(0,0,0,0.3)",
     border: "1px solid var(--border-light)",
@@ -60,18 +60,27 @@ export function AnalyticsTab({ rewardData, trafficData, weatherData }) {
       </div>
 
       <div className="glass-panel" style={{ padding: "24px" }}>
-        <h3 className="mono-text" style={{ fontSize: "14px", color: "var(--brand-lime)", marginBottom: "20px", letterSpacing: "1px" }}>HYBRID PERFORMANCE (BENCHMARK)</h3>
+        <h3 className="mono-text" style={{ fontSize: "14px", color: "var(--brand-lime)", marginBottom: "20px", letterSpacing: "1px" }}>SESSION SNAPSHOT</h3>
         <div style={{ ...chartStyle, padding: "16px", height: "250px", overflow: "auto" }}>
-          <table>
-            <thead>
-              <tr><th>Scenario</th><th>Distance</th><th>Time</th><th>Fuel</th></tr>
-            </thead>
-            <tbody className="mono-text">
-              <tr style={{ color: "var(--text-muted)" }}><td>OR-Tools Baseline</td><td>43.3 km</td><td>104 min</td><td>5.2 L</td></tr>
-              <tr style={{ color: "var(--brand-lime)" }}><td>Hybrid (RL Warm)</td><td>40.8 km</td><td>98 min</td><td>4.9 L</td></tr>
-              <tr style={{ color: "var(--brand-coral)" }}><td>Traffic Event</td><td>45.0 km</td><td>108 min</td><td>5.4 L</td></tr>
-            </tbody>
-          </table>
+          {metrics ? (
+            <table>
+              <thead>
+                <tr><th>Metric</th><th>Value</th></tr>
+              </thead>
+              <tbody className="mono-text">
+                <tr style={{ color: "var(--brand-cyan)" }}><td>Distance</td><td>{metrics.total_dist_km?.toFixed(2)} km</td></tr>
+                <tr style={{ color: "var(--brand-gold)" }}><td>Time</td><td>{metrics.total_time_min?.toFixed(1)} min</td></tr>
+                <tr style={{ color: "var(--brand-coral)" }}><td>Fuel</td><td>{metrics.total_fuel_L?.toFixed(3)} L</td></tr>
+                <tr style={{ color: "var(--brand-lime)" }}><td>On-Time</td><td>{metrics.on_time_pct}%</td></tr>
+                <tr style={{ color: "var(--brand-purple)" }}><td>Vehicles Used</td><td>{metrics.vehicles_used}</td></tr>
+                <tr style={{ color: "var(--text-muted)" }}><td>Warm Start</td><td>{solveInfo?.warmStart?.used ? `PPO (${solveInfo.warmStart.suggested_orders} orders)` : (solveInfo?.warmStart?.reason || "Not used")}</td></tr>
+              </tbody>
+            </table>
+          ) : (
+            <div className="mono-text" style={{ color: "var(--text-muted)", fontSize: "12px" }}>
+              Run an optimization to see live performance metrics instead of placeholder benchmark values.
+            </div>
+          )}
         </div>
       </div>
 

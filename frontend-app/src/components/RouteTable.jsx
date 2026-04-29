@@ -45,9 +45,9 @@ export function RouteTable({ routes }) {
       {visible.map((v, idx) => {
         const vi  = selectedVehicle !== null ? selectedVehicle : idx;
         const col = V_COLORS[vi%V_COLORS.length];
-        const dist = (v.stops||[]).reduce((s,o)=>s+(o.distance_km||0),0);
-        const time = (v.stops||[]).reduce((s,o)=>s+(o.eta_min||0),0);
-        const fuel = (v.stops||[]).reduce((s,o)=>s+(o.fuel_L||0),0);
+        const dist = v.route_dist_km ?? (v.stops||[]).reduce((s,o)=>s+(o.distance_km||0),0);
+        const time = v.route_time_min ?? (v.stops||[]).reduce((s,o)=>s+(o.eta_min||0),0);
+        const fuel = v.route_fuel_L ?? (v.stops||[]).reduce((s,o)=>s+(o.fuel_L||0),0);
 
         return (
           <div key={vi} className="glass-panel" style={{ overflow: "hidden" }}>
@@ -67,7 +67,7 @@ export function RouteTable({ routes }) {
                 <table>
                   <thead>
                     <tr>
-                      {["#", "ORDER", "DISTANCE", "ETA", "TRAFFIC", "WEATHER", "C02 EMIT"].map(h => <th key={h}>{h}</th>)}
+                      {["#", "ORDER", "DISTANCE", "ETA", "TRAFFIC", "WEATHER", "ON TIME", "CO2 EMIT"].map(h => <th key={h}>{h}</th>)}
                     </tr>
                   </thead>
                   <tbody>
@@ -77,8 +77,9 @@ export function RouteTable({ routes }) {
                         <td style={{ color: col, fontWeight: 600 }}>#{s.order_id || "..." }</td>
                         <td style={{ color: "var(--brand-cyan)" }}>{s.distance_km?.toFixed(2)} km</td>
                         <td style={{ color: "var(--brand-gold)" }}>{s.eta_min?.toFixed(1)} min</td>
-                        <td style={{ color: s.traffic > 1 ? "var(--brand-coral)" : "var(--brand-lime)" }}>{s.traffic||"—"}</td>
+                        <td style={{ color: (s.traffic_level ?? 1) > 1 ? "var(--brand-coral)" : "var(--brand-lime)" }}>{s.traffic||"—"}</td>
                         <td style={{ color: "var(--brand-purple)" }}>{s.weather||"—"}</td>
+                        <td style={{ color: s.on_time ? "var(--brand-lime)" : "var(--brand-coral)" }}>{s.on_time ? "YES" : "LATE"}</td>
                         <td style={{ color: "var(--text-muted)" }}>{s.co2_kg?.toFixed(2)} kg</td>
                       </tr>
                     ))}

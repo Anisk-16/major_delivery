@@ -25,11 +25,12 @@ from gymnasium import spaces
 # ── constants ──────────────────────────────────────────────────────────────────
 MAX_ORDERS   = 30     # episode batch size (sampled from full dataset)
 MAX_TIME     = 1440   # minutes in a simulation day
-SPEED_KMH    = 25.0   # average vehicle speed
+SPEED_KMH    = 40.0   # realistic urban delivery speed (km/h)
 R_KM         = 111.0  # km per degree (normalised [0,1] grid)
 FUEL_PER_KM  = 0.12   # litres/km
-LATE_PENALTY = 5.0    # extra cost per late order (km-equivalent)
-TIME_WINDOW  = 60     # minutes before an order is considered "late"
+LATE_PENALTY     = 5.0   # extra cost per late order (km-equivalent)
+TIME_WINDOW      = 60    # minutes before an order is considered "late"
+UNSERVED_PENALTY = 50.0  # penalty per order NOT served when time runs out
 
 TRAFFIC_FACTOR = {0: 1.0, 1: 1.2, 2: 1.5, 3: 1.8}
 
@@ -148,6 +149,10 @@ class DeliveryEnv(gym.Env):
         self.remaining_idx.remove(order_pos)
         if len(self.remaining_idx) == 0 or self.current_time >= MAX_TIME:
             self.done = True
+            # Penalise for every order left unserved when time runs out.
+            # Without this the agent has no incentive to serve the full batch.
+            if self.remaining_idx:  # time-out with orders still pending
+                reward -= len(self.remaining_idx) * UNSERVED_PENALTY
 
         return self._build_obs(), float(reward), self.done, False, self._info()
 

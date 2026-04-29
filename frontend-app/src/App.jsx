@@ -5,6 +5,7 @@ import { MetricsBand } from "./components/MetricsBand";
 import { MapTab } from "./components/MapTab";
 import { RouteTable } from "./components/RouteTable";
 import { AnalyticsTab } from "./components/AnalyticsTab";
+import { ModelPerformanceTab } from "./components/ModelPerformanceTab";
 
 const API = "http://localhost:8000";
 
@@ -22,11 +23,13 @@ export default function App() {
   const [rewardData, setRewardData] = useState([]);
   const [trafficData, setTrafficData] = useState([]);
   const [weatherData, setWeatherData] = useState([]);
+  const [modelScores, setModelScores] = useState(null);
+  const [rlModelMetrics, setRlModelMetrics] = useState(null);
   const [depot, setDepot] = useState(null);
   const [loading, setLoading] = useState(false);
   const [tab, setTab] = useState("map");
   
-  const [nOrders, setNOrders] = useState(25);
+  const [nOrders, setNOrders] = useState(20);
   const [nVehicles, setNVehicles] = useState(3);
   const [capacity, setCapacity] = useState(10);
   const [solveInfo, setSolveInfo] = useState(null);
@@ -78,6 +81,8 @@ export default function App() {
   function handleWsMessage(msg) {
     if (msg.routes_detail?.length) setRoutes(msg.routes_detail);
     if (msg.metrics) setMetrics(m => ({ ...m, ...msg.metrics, solve_time: msg.solve_time_s }));
+    if (msg.model_scores) setModelScores(msg.model_scores);
+    if (msg.rl_model_metrics) setRlModelMetrics(msg.rl_model_metrics);
     if (msg.type === "AUTO_REOPT") {
       addLog(`🔄 Auto re-opt → ${msg.strategy} · ${msg.solve_time_s}s`);
     } else if (msg.type === "EVENT_RESULT") {
@@ -90,6 +95,8 @@ export default function App() {
     try {
       const res = await apiFetch(`/orders?limit=${nOrders}`);
       setOrders(res.orders);
+      setModelScores(null);
+      setRlModelMetrics(null);
       addLog(`✅ Loaded ${res.orders.length} orders`);
     } catch(e) { addLog(`❌ ${e.message}`); }
     finally { setLoading(false); }
@@ -97,7 +104,7 @@ export default function App() {
 
   const runOptimize = async () => {
     if (!orders.length) return;
-    setLoading(true); setSolveInfo(null);
+    setLoading(true); setSolveInfo(null); setModelScores(null); setRlModelMetrics(null);
     try {
       const res = await apiFetch("/optimize", {
         method:"POST", 
@@ -105,7 +112,14 @@ export default function App() {
       });
       setRoutes(res.routes_detail || []);
       setMetrics({ ...res.metrics, solve_time: res.solve_time_s });
-      setSolveInfo({ status: res.status, time: res.solve_time_s, dist: res.total_dist_km });
+      setModelScores(res.model_scores || null);
+      setRlModelMetrics(res.rl_model_metrics || null);
+      setSolveInfo({
+        status: res.status,
+        time: res.solve_time_s,
+        dist: res.total_dist_km,
+        warmStart: res.warm_start,
+      });
       
       const lat = orders.reduce((s,o) => s + o.pickup_lat, 0) / orders.length;
       const lon = orders.reduce((s,o) => s + o.pickup_lon, 0) / orders.length;
@@ -131,6 +145,8 @@ export default function App() {
     const res = await apiFetch("/event", { method: "POST", body: JSON.stringify({ event_type: type, payload }) });
     setRoutes(res.routes_detail || []);
     setMetrics(m => ({ ...m, ...res.metrics }));
+    setModelScores(res.model_scores || null);
+    setRlModelMetrics(res.rl_model_metrics || null);
     addLog(`⚡ ${type} triggered → Strategy: ${res.strategy} inside ${res.solve_time_s}s`);
   };
 
@@ -161,7 +177,7 @@ export default function App() {
       <MetricsBand metrics={metrics} />
 
       <div style={{ padding: "0 32px", borderBottom: "1px solid var(--border-light)", display: "flex", gap: "24px", marginBottom: "24px" }}>
-        {[["map", "🗺️ GLOBAL MAP"], ["routes", "🚚 ACTIVE ROUTES"], ["analytics", "📊 ML ANALYTICS"]].map(([t, l]) => (
+        {[["map", "GLOBAL MAP"], ["routes", "ACTIVE ROUTES"], ["analytics", "ML ANALYTICS"], ["performance", "MODEL PERFORMANCE"]].map(([t, l]) => (
           <button 
             key={t} 
             onClick={() => setTab(t)} 
@@ -192,7 +208,17 @@ export default function App() {
       )}
 
       {tab === "analytics" && (
-        <AnalyticsTab rewardData={rewardData} trafficData={trafficData} weatherData={weatherData} />
+        <AnalyticsTab
+          rewardData={rewardData}
+          trafficData={trafficData}
+          weatherData={weatherData}
+          metrics={metrics}
+          solveInfo={solveInfo}
+        />
+      )}
+
+      {tab === "performance" && (
+        <ModelPerformanceTab rlMetrics={rlModelMetrics} scores={modelScores} />
       )}
     </>
   );
