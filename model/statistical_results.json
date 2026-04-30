@@ -1,0 +1,852 @@
+{
+  "config": {
+    "n_episodes": 30,
+    "batch_size": 20
+  },
+  "rl_results": [
+    {
+      "episode": 0,
+      "seed": 42,
+      "orders_served": 13,
+      "on_time_pct": 69.2,
+      "reward": -915.088,
+      "late_count": 4
+    },
+    {
+      "episode": 1,
+      "seed": 43,
+      "orders_served": 12,
+      "on_time_pct": 75.0,
+      "reward": -954.063,
+      "late_count": 3
+    },
+    {
+      "episode": 2,
+      "seed": 44,
+      "orders_served": 12,
+      "on_time_pct": 75.0,
+      "reward": -922.518,
+      "late_count": 3
+    },
+    {
+      "episode": 3,
+      "seed": 45,
+      "orders_served": 8,
+      "on_time_pct": 75.0,
+      "reward": -1052.239,
+      "late_count": 2
+    },
+    {
+      "episode": 4,
+      "seed": 46,
+      "orders_served": 13,
+      "on_time_pct": 76.9,
+      "reward": -844.353,
+      "late_count": 3
+    },
+    {
+      "episode": 5,
+      "seed": 47,
+      "orders_served": 11,
+      "on_time_pct": 72.7,
+      "reward": -905.278,
+      "late_count": 3
+    },
+    {
+      "episode": 6,
+      "seed": 48,
+      "orders_served": 13,
+      "on_time_pct": 61.5,
+      "reward": -936.706,
+      "late_count": 5
+    },
+    {
+      "episode": 7,
+      "seed": 49,
+      "orders_served": 12,
+      "on_time_pct": 83.3,
+      "reward": -864.739,
+      "late_count": 2
+    },
+    {
+      "episode": 8,
+      "seed": 50,
+      "orders_served": 13,
+      "on_time_pct": 84.6,
+      "reward": -784.014,
+      "late_count": 2
+    },
+    {
+      "episode": 9,
+      "seed": 51,
+      "orders_served": 14,
+      "on_time_pct": 85.7,
+      "reward": -803.312,
+      "late_count": 2
+    },
+    {
+      "episode": 10,
+      "seed": 52,
+      "orders_served": 14,
+      "on_time_pct": 78.6,
+      "reward": -825.673,
+      "late_count": 3
+    },
+    {
+      "episode": 11,
+      "seed": 53,
+      "orders_served": 12,
+      "on_time_pct": 75.0,
+      "reward": -904.217,
+      "late_count": 3
+    },
+    {
+      "episode": 12,
+      "seed": 54,
+      "orders_served": 13,
+      "on_time_pct": 76.9,
+      "reward": -828.247,
+      "late_count": 3
+    },
+    {
+      "episode": 13,
+      "seed": 55,
+      "orders_served": 10,
+      "on_time_pct": 90.0,
+      "reward": -970.706,
+      "late_count": 1
+    },
+    {
+      "episode": 14,
+      "seed": 56,
+      "orders_served": 11,
+      "on_time_pct": 90.9,
+      "reward": -986.261,
+      "late_count": 1
+    },
+    {
+      "episode": 15,
+      "seed": 57,
+      "orders_served": 13,
+      "on_time_pct": 69.2,
+      "reward": -902.427,
+      "late_count": 4
+    },
+    {
+      "episode": 16,
+      "seed": 58,
+      "orders_served": 12,
+      "on_time_pct": 75.0,
+      "reward": -964.4,
+      "late_count": 3
+    },
+    {
+      "episode": 17,
+      "seed": 59,
+      "orders_served": 12,
+      "on_time_pct": 75.0,
+      "reward": -980.858,
+      "late_count": 3
+    },
+    {
+      "episode": 18,
+      "seed": 60,
+      "orders_served": 11,
+      "on_time_pct": 72.7,
+      "reward": -955.73,
+      "late_count": 3
+    },
+    {
+      "episode": 19,
+      "seed": 61,
+      "orders_served": 14,
+      "on_time_pct": 64.3,
+      "reward": -801.501,
+      "late_count": 5
+    },
+    {
+      "episode": 20,
+      "seed": 62,
+      "orders_served": 13,
+      "on_time_pct": 76.9,
+      "reward": -885.29,
+      "late_count": 3
+    },
+    {
+      "episode": 21,
+      "seed": 63,
+      "orders_served": 12,
+      "on_time_pct": 75.0,
+      "reward": -909.997,
+      "late_count": 3
+    },
+    {
+      "episode": 22,
+      "seed": 64,
+      "orders_served": 14,
+      "on_time_pct": 57.1,
+      "reward": -919.686,
+      "late_count": 6
+    },
+    {
+      "episode": 23,
+      "seed": 65,
+      "orders_served": 14,
+      "on_time_pct": 78.6,
+      "reward": -808.969,
+      "late_count": 3
+    },
+    {
+      "episode": 24,
+      "seed": 66,
+      "orders_served": 12,
+      "on_time_pct": 75.0,
+      "reward": -1017.643,
+      "late_count": 3
+    },
+    {
+      "episode": 25,
+      "seed": 67,
+      "orders_served": 13,
+      "on_time_pct": 84.6,
+      "reward": -839.378,
+      "late_count": 2
+    },
+    {
+      "episode": 26,
+      "seed": 68,
+      "orders_served": 11,
+      "on_time_pct": 63.6,
+      "reward": -1006.201,
+      "late_count": 4
+    },
+    {
+      "episode": 27,
+      "seed": 69,
+      "orders_served": 12,
+      "on_time_pct": 83.3,
+      "reward": -870.873,
+      "late_count": 2
+    },
+    {
+      "episode": 28,
+      "seed": 70,
+      "orders_served": 13,
+      "on_time_pct": 76.9,
+      "reward": -881.621,
+      "late_count": 3
+    },
+    {
+      "episode": 29,
+      "seed": 71,
+      "orders_served": 13,
+      "on_time_pct": 84.6,
+      "reward": -815.553,
+      "late_count": 2
+    }
+  ],
+  "or_results": [
+    {
+      "episode": 0,
+      "seed": 42,
+      "solve_time_s": 10.01,
+      "total_dist_km": 154.824,
+      "total_fuel_L": 21.933,
+      "status": "OPTIMAL"
+    },
+    {
+      "episode": 1,
+      "seed": 43,
+      "solve_time_s": 10.0,
+      "total_dist_km": 382.172,
+      "total_fuel_L": 53.592,
+      "status": "OPTIMAL"
+    },
+    {
+      "episode": 2,
+      "seed": 44,
+      "solve_time_s": 10.0,
+      "total_dist_km": 385.905,
+      "total_fuel_L": 54.036,
+      "status": "OPTIMAL"
+    },
+    {
+      "episode": 3,
+      "seed": 45,
+      "solve_time_s": 10.0,
+      "total_dist_km": 398.559,
+      "total_fuel_L": 56.159,
+      "status": "OPTIMAL"
+    },
+    {
+      "episode": 4,
+      "seed": 46,
+      "solve_time_s": 10.0,
+      "total_dist_km": 394.028,
+      "total_fuel_L": 55.425,
+      "status": "OPTIMAL"
+    },
+    {
+      "episode": 5,
+      "seed": 47,
+      "solve_time_s": 10.0,
+      "total_dist_km": 392.482,
+      "total_fuel_L": 55.051,
+      "status": "OPTIMAL"
+    },
+    {
+      "episode": 6,
+      "seed": 48,
+      "solve_time_s": 10.0,
+      "total_dist_km": 351.074,
+      "total_fuel_L": 48.549,
+      "status": "OPTIMAL"
+    },
+    {
+      "episode": 7,
+      "seed": 49,
+      "solve_time_s": 10.0,
+      "total_dist_km": 378.065,
+      "total_fuel_L": 54.101,
+      "status": "OPTIMAL"
+    },
+    {
+      "episode": 8,
+      "seed": 50,
+      "solve_time_s": 10.0,
+      "total_dist_km": 173.162,
+      "total_fuel_L": 25.074,
+      "status": "OPTIMAL"
+    },
+    {
+      "episode": 9,
+      "seed": 51,
+      "solve_time_s": 10.0,
+      "total_dist_km": 159.479,
+      "total_fuel_L": 23.179,
+      "status": "OPTIMAL"
+    },
+    {
+      "episode": 10,
+      "seed": 52,
+      "solve_time_s": 10.0,
+      "total_dist_km": 343.733,
+      "total_fuel_L": 49.024,
+      "status": "OPTIMAL"
+    },
+    {
+      "episode": 11,
+      "seed": 53,
+      "solve_time_s": 10.0,
+      "total_dist_km": 374.534,
+      "total_fuel_L": 55.014,
+      "status": "OPTIMAL"
+    },
+    {
+      "episode": 12,
+      "seed": 54,
+      "solve_time_s": 10.0,
+      "total_dist_km": 156.599,
+      "total_fuel_L": 22.8,
+      "status": "OPTIMAL"
+    },
+    {
+      "episode": 13,
+      "seed": 55,
+      "solve_time_s": 10.0,
+      "total_dist_km": 408.235,
+      "total_fuel_L": 55.238,
+      "status": "OPTIMAL"
+    },
+    {
+      "episode": 14,
+      "seed": 56,
+      "solve_time_s": 10.0,
+      "total_dist_km": 389.268,
+      "total_fuel_L": 55.424,
+      "status": "OPTIMAL"
+    },
+    {
+      "episode": 15,
+      "seed": 57,
+      "solve_time_s": 10.0,
+      "total_dist_km": 389.418,
+      "total_fuel_L": 59.427,
+      "status": "OPTIMAL"
+    },
+    {
+      "episode": 16,
+      "seed": 58,
+      "solve_time_s": 10.0,
+      "total_dist_km": 366.229,
+      "total_fuel_L": 54.746,
+      "status": "OPTIMAL"
+    },
+    {
+      "episode": 17,
+      "seed": 59,
+      "solve_time_s": 10.0,
+      "total_dist_km": 389.243,
+      "total_fuel_L": 56.458,
+      "status": "OPTIMAL"
+    },
+    {
+      "episode": 18,
+      "seed": 60,
+      "solve_time_s": 10.0,
+      "total_dist_km": 413.964,
+      "total_fuel_L": 60.239,
+      "status": "OPTIMAL"
+    },
+    {
+      "episode": 19,
+      "seed": 61,
+      "solve_time_s": 10.0,
+      "total_dist_km": 157.494,
+      "total_fuel_L": 22.332,
+      "status": "OPTIMAL"
+    },
+    {
+      "episode": 20,
+      "seed": 62,
+      "solve_time_s": 10.0,
+      "total_dist_km": 149.847,
+      "total_fuel_L": 21.359,
+      "status": "OPTIMAL"
+    },
+    {
+      "episode": 21,
+      "seed": 63,
+      "solve_time_s": 10.0,
+      "total_dist_km": 361.48,
+      "total_fuel_L": 51.959,
+      "status": "OPTIMAL"
+    },
+    {
+      "episode": 22,
+      "seed": 64,
+      "solve_time_s": 10.0,
+      "total_dist_km": 383.235,
+      "total_fuel_L": 55.997,
+      "status": "OPTIMAL"
+    },
+    {
+      "episode": 23,
+      "seed": 65,
+      "solve_time_s": 10.0,
+      "total_dist_km": 332.776,
+      "total_fuel_L": 45.003,
+      "status": "OPTIMAL"
+    },
+    {
+      "episode": 24,
+      "seed": 66,
+      "solve_time_s": 10.0,
+      "total_dist_km": 355.723,
+      "total_fuel_L": 49.585,
+      "status": "OPTIMAL"
+    },
+    {
+      "episode": 25,
+      "seed": 67,
+      "solve_time_s": 10.0,
+      "total_dist_km": 347.557,
+      "total_fuel_L": 50.04,
+      "status": "OPTIMAL"
+    },
+    {
+      "episode": 26,
+      "seed": 68,
+      "solve_time_s": 10.0,
+      "total_dist_km": 387.882,
+      "total_fuel_L": 55.626,
+      "status": "OPTIMAL"
+    },
+    {
+      "episode": 27,
+      "seed": 69,
+      "solve_time_s": 10.0,
+      "total_dist_km": 365.298,
+      "total_fuel_L": 51.24,
+      "status": "OPTIMAL"
+    },
+    {
+      "episode": 28,
+      "seed": 70,
+      "solve_time_s": 10.0,
+      "total_dist_km": 398.65,
+      "total_fuel_L": 57.123,
+      "status": "OPTIMAL"
+    },
+    {
+      "episode": 29,
+      "seed": 71,
+      "solve_time_s": 10.0,
+      "total_dist_km": 351.992,
+      "total_fuel_L": 52.316,
+      "status": "OPTIMAL"
+    }
+  ],
+  "hybrid_results": [
+    {
+      "episode": 0,
+      "seed": 42,
+      "solve_time_s": 10.0,
+      "total_dist_km": 1002.938,
+      "total_fuel_L": 151.464,
+      "on_time_pct": 65.0,
+      "orders_served": 20
+    },
+    {
+      "episode": 1,
+      "seed": 43,
+      "solve_time_s": 10.0,
+      "total_dist_km": 1436.055,
+      "total_fuel_L": 219.497,
+      "on_time_pct": 60.0,
+      "orders_served": 20
+    },
+    {
+      "episode": 2,
+      "seed": 44,
+      "solve_time_s": 10.0,
+      "total_dist_km": 1244.208,
+      "total_fuel_L": 188.67,
+      "on_time_pct": 55.0,
+      "orders_served": 20
+    },
+    {
+      "episode": 3,
+      "seed": 45,
+      "solve_time_s": 10.0,
+      "total_dist_km": 1642.46,
+      "total_fuel_L": 249.841,
+      "on_time_pct": 40.0,
+      "orders_served": 20
+    },
+    {
+      "episode": 4,
+      "seed": 46,
+      "solve_time_s": 10.0,
+      "total_dist_km": 1071.277,
+      "total_fuel_L": 163.278,
+      "on_time_pct": 60.0,
+      "orders_served": 20
+    },
+    {
+      "episode": 5,
+      "seed": 47,
+      "solve_time_s": 10.0,
+      "total_dist_km": 1309.548,
+      "total_fuel_L": 196.529,
+      "on_time_pct": 50.0,
+      "orders_served": 20
+    },
+    {
+      "episode": 6,
+      "seed": 48,
+      "solve_time_s": 10.0,
+      "total_dist_km": 1108.104,
+      "total_fuel_L": 161.803,
+      "on_time_pct": 75.0,
+      "orders_served": 20
+    },
+    {
+      "episode": 7,
+      "seed": 49,
+      "solve_time_s": 10.0,
+      "total_dist_km": 1214.008,
+      "total_fuel_L": 182.707,
+      "on_time_pct": 55.0,
+      "orders_served": 20
+    },
+    {
+      "episode": 8,
+      "seed": 50,
+      "solve_time_s": 10.0,
+      "total_dist_km": 832.828,
+      "total_fuel_L": 126.841,
+      "on_time_pct": 70.0,
+      "orders_served": 20
+    },
+    {
+      "episode": 9,
+      "seed": 51,
+      "solve_time_s": 10.0,
+      "total_dist_km": 821.539,
+      "total_fuel_L": 125.632,
+      "on_time_pct": 75.0,
+      "orders_served": 20
+    },
+    {
+      "episode": 10,
+      "seed": 52,
+      "solve_time_s": 10.0,
+      "total_dist_km": 983.586,
+      "total_fuel_L": 148.773,
+      "on_time_pct": 60.0,
+      "orders_served": 20
+    },
+    {
+      "episode": 11,
+      "seed": 53,
+      "solve_time_s": 10.0,
+      "total_dist_km": 1202.745,
+      "total_fuel_L": 183.514,
+      "on_time_pct": 70.0,
+      "orders_served": 20
+    },
+    {
+      "episode": 12,
+      "seed": 54,
+      "solve_time_s": 10.0,
+      "total_dist_km": 809.67,
+      "total_fuel_L": 123.238,
+      "on_time_pct": 70.0,
+      "orders_served": 20
+    },
+    {
+      "episode": 13,
+      "seed": 55,
+      "solve_time_s": 10.0,
+      "total_dist_km": 1426.353,
+      "total_fuel_L": 212.564,
+      "on_time_pct": 40.0,
+      "orders_served": 20
+    },
+    {
+      "episode": 14,
+      "seed": 56,
+      "solve_time_s": 10.0,
+      "total_dist_km": 1293.459,
+      "total_fuel_L": 194.772,
+      "on_time_pct": 65.0,
+      "orders_served": 20
+    },
+    {
+      "episode": 15,
+      "seed": 57,
+      "solve_time_s": 10.0,
+      "total_dist_km": 1018.325,
+      "total_fuel_L": 159.787,
+      "on_time_pct": 80.0,
+      "orders_served": 20
+    },
+    {
+      "episode": 16,
+      "seed": 58,
+      "solve_time_s": 10.0,
+      "total_dist_km": 1243.819,
+      "total_fuel_L": 188.555,
+      "on_time_pct": 45.0,
+      "orders_served": 20
+    },
+    {
+      "episode": 17,
+      "seed": 59,
+      "solve_time_s": 10.0,
+      "total_dist_km": 1442.406,
+      "total_fuel_L": 224.786,
+      "on_time_pct": 40.0,
+      "orders_served": 20
+    },
+    {
+      "episode": 18,
+      "seed": 60,
+      "solve_time_s": 10.0,
+      "total_dist_km": 1365.942,
+      "total_fuel_L": 218.408,
+      "on_time_pct": 45.0,
+      "orders_served": 20
+    },
+    {
+      "episode": 19,
+      "seed": 61,
+      "solve_time_s": 10.0,
+      "total_dist_km": 885.22,
+      "total_fuel_L": 130.869,
+      "on_time_pct": 70.0,
+      "orders_served": 20
+    },
+    {
+      "episode": 20,
+      "seed": 62,
+      "solve_time_s": 10.0,
+      "total_dist_km": 1013.396,
+      "total_fuel_L": 154.62,
+      "on_time_pct": 65.0,
+      "orders_served": 20
+    },
+    {
+      "episode": 21,
+      "seed": 63,
+      "solve_time_s": 10.0,
+      "total_dist_km": 1159.519,
+      "total_fuel_L": 173.502,
+      "on_time_pct": 50.0,
+      "orders_served": 20
+    },
+    {
+      "episode": 22,
+      "seed": 64,
+      "solve_time_s": 10.0,
+      "total_dist_km": 1093.275,
+      "total_fuel_L": 163.834,
+      "on_time_pct": 55.0,
+      "orders_served": 20
+    },
+    {
+      "episode": 23,
+      "seed": 65,
+      "solve_time_s": 10.0,
+      "total_dist_km": 1216.303,
+      "total_fuel_L": 181.959,
+      "on_time_pct": 60.0,
+      "orders_served": 20
+    },
+    {
+      "episode": 24,
+      "seed": 66,
+      "solve_time_s": 10.0,
+      "total_dist_km": 1142.822,
+      "total_fuel_L": 167.082,
+      "on_time_pct": 65.0,
+      "orders_served": 20
+    },
+    {
+      "episode": 25,
+      "seed": 67,
+      "solve_time_s": 10.0,
+      "total_dist_km": 1134.621,
+      "total_fuel_L": 172.144,
+      "on_time_pct": 65.0,
+      "orders_served": 20
+    },
+    {
+      "episode": 26,
+      "seed": 68,
+      "solve_time_s": 10.0,
+      "total_dist_km": 1234.166,
+      "total_fuel_L": 193.701,
+      "on_time_pct": 45.0,
+      "orders_served": 20
+    },
+    {
+      "episode": 27,
+      "seed": 69,
+      "solve_time_s": 10.0,
+      "total_dist_km": 1190.981,
+      "total_fuel_L": 180.924,
+      "on_time_pct": 65.0,
+      "orders_served": 20
+    },
+    {
+      "episode": 28,
+      "seed": 70,
+      "solve_time_s": 10.0,
+      "total_dist_km": 1136.763,
+      "total_fuel_L": 174.66,
+      "on_time_pct": 50.0,
+      "orders_served": 20
+    },
+    {
+      "episode": 29,
+      "seed": 71,
+      "solve_time_s": 10.0,
+      "total_dist_km": 986.69,
+      "total_fuel_L": 153.437,
+      "on_time_pct": 60.0,
+      "orders_served": 20
+    }
+  ],
+  "comparisons": [
+    {
+      "metric": "total_dist_km",
+      "comparison": "Hybrid vs OR_Cold",
+      "mean_Hybrid": 1155.4342,
+      "std_Hybrid": 197.7324,
+      "ci95_Hybrid": [
+        1087.5976,
+        1225.9178
+      ],
+      "mean_OR_Cold": 333.0969,
+      "std_OR_Cold": 90.8703,
+      "ci95_OR_Cold": [
+        299.4778,
+        361.2121
+      ],
+      "mann_whitney_U": 900.0,
+      "p_value_mw": 1.0,
+      "p_wilcoxon": 0.0,
+      "cohens_d": 5.3442,
+      "effect_size": "large",
+      "significance": "p = 1.0000 (not significant)",
+      "favors": "OR_Cold"
+    },
+    {
+      "metric": "solve_time_s",
+      "comparison": "Hybrid vs OR_Cold",
+      "mean_Hybrid": 10.0,
+      "std_Hybrid": 0.0,
+      "ci95_Hybrid": [
+        10.0,
+        10.0
+      ],
+      "mean_OR_Cold": 10.0003,
+      "std_OR_Cold": 0.0018,
+      "ci95_OR_Cold": [
+        10.0,
+        10.001
+      ],
+      "mann_whitney_U": 435.0,
+      "p_value_mw": 0.166855,
+      "p_wilcoxon": 0.317311,
+      "cohens_d": -0.2582,
+      "effect_size": "small",
+      "significance": "p = 0.1669 (not significant)",
+      "favors": "Hybrid"
+    },
+    {
+      "metric": "total_fuel_L",
+      "comparison": "Hybrid vs OR_Cold",
+      "mean_Hybrid": 175.5797,
+      "std_Hybrid": 30.7277,
+      "ci95_Hybrid": [
+        164.9306,
+        185.6641
+      ],
+      "mean_OR_Cold": 47.6016,
+      "std_OR_Cold": 13.0221,
+      "ci95_OR_Cold": [
+        42.7744,
+        52.0062
+      ],
+      "mann_whitney_U": 900.0,
+      "p_value_mw": 1.0,
+      "p_wilcoxon": 0.0,
+      "cohens_d": 5.4232,
+      "effect_size": "large",
+      "significance": "p = 1.0000 (not significant)",
+      "favors": "OR_Cold"
+    }
+  ],
+  "summary": {
+    "rl_orders_served_mean": 12.333,
+    "rl_orders_served_std": 1.322,
+    "rl_orders_served_ci95": [
+      11.8333,
+      12.8
+    ],
+    "rl_on_time_mean": 76.07,
+    "rl_on_time_ci95": [
+      73.0018,
+      78.6805
+    ],
+    "hybrid_dist_mean": 1155.434,
+    "hybrid_dist_ci95": [
+      1085.9735,
+      1223.4664
+    ],
+    "or_cold_dist_mean": 333.097
+  }
+}
